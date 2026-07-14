@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Generate HD architecture diagram for widemem."""
 
+import os
+
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -10,7 +12,7 @@ import matplotlib.patheffects as pe
 from matplotlib import font_manager
 import numpy as np
 
-FONTS = "/Users/radu/.claude/skills/canvas-design/canvas-fonts"
+FONTS = os.environ.get("DIAGRAM_FONTS_DIR", "")
 font_manager.fontManager.addfont(f"{FONTS}/GeistMono-Regular.ttf")
 font_manager.fontManager.addfont(f"{FONTS}/GeistMono-Bold.ttf")
 font_manager.fontManager.addfont(f"{FONTS}/Outfit-Regular.ttf")
@@ -279,6 +281,6 @@ ax.text(0.06, 0.04, "widemem.ai", fontsize=8, ha="left", va="center",
         color=TEXT_DIM, fontfamily=CODE, zorder=4)
 
 plt.tight_layout(pad=0.5)
-plt.savefig("/Users/radu/widemem/docs/architecture.png",
+plt.savefig("docs/architecture.png",
             facecolor=BG, edgecolor="none", bbox_inches="tight", dpi=200)
 print("Saved: docs/architecture.png")

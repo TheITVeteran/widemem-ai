@@ -9,7 +9,7 @@ description = "Next-gen AI memory layer with hierarchical memory, importance sco
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
-authors = [{ name = "Radu Cioplea", email = "radu@cioplea.com" }]
+authors = [{ name = "widemem", email = "hello@widemem.ai" }]
 keywords = [
     "ai", "memory", "llm", "embeddings", "vector-search",
     "agent-memory", "conversational-memory", "rag", "semantic-search",
