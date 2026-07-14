@@ -66,7 +66,7 @@ Seven features, one library. Here's what widemem does that most memory systems d
 | 6 | **Confidence & abstention** | Returns confidence level for every retrieval; abstains on memory miss | Lets the agent fall back to "I don't have that" instead of guessing |
 | 7 | **Retrieval modes** | fast / balanced / deep, pick your accuracy-cost tradeoff | Same system, three price points. You pick. |
 
-490+ tests. Zero external services required. SQLite plus FAISS by default. Plug in OpenAI, Anthropic, Ollama, Qdrant, or sentence-transformers as needed.
+600+ tests. Zero external services required. SQLite plus FAISS by default. Plug in OpenAI, Anthropic, Ollama, Qdrant, or sentence-transformers as needed.
 
 ---
 
@@ -90,7 +90,8 @@ Seven features, one library. Here's what widemem does that most memory systems d
 - [Claude Code Skill](#claude-code-skill)
 - [MCP Server](#mcp-server)
 - [Development](#development)
-- [Terms & Conditions](#terms--conditions)
+- [Benchmarks](#benchmarks)
+- [Disclaimer & intended use](#disclaimer--intended-use)
 - [Contact](#contact)
 - [License](#license)
 
@@ -631,7 +632,21 @@ pip install -e ".[dev,faiss]"
 pytest
 ```
 
-490+ tests. They all pass. We checked.
+600+ tests. They all pass. We checked.
+
+---
+
+## Benchmarks
+
+Measured on the full 1,540-question [LoCoMo](https://github.com/snap-research/locomo) benchmark, v1.4.1:
+
+| Metric | Result |
+|---|---|
+| Overall accuracy | **54.81%** |
+| Multi-hop accuracy | **57.27%** |
+| Context per query | **~214 tokens** (vs ~26k for full-context stuffing) |
+
+Ahead of every reference system in our set on multi-hop, at a fraction of the token cost. Full methodology, per-category breakdowns, reference-system comparisons, and the story of how we caught and corrected our own earlier numbers: [widemem.ai/benchmarks](https://widemem.ai/benchmarks). Reproduce it yourself from [benchmark/](benchmark/).
 
 ---
 
@@ -649,10 +664,6 @@ Tracked publicly as GitHub issues. Vote with reactions to prioritize. Issues tag
 - [#23 LangChain `BaseRetriever` adapter](https://github.com/remete618/widemem-ai/issues/23) — RAG-style retrieval from widemem in any LangChain chain
 - [#24 LangGraph `BaseStore` adapter](https://github.com/remete618/widemem-ai/issues/24) — memory backend for stateful LangGraph agents
 
-### Providers
-
-- [#25 Anthropic Claude LLM provider](https://github.com/remete618/widemem-ai/issues/25) — completes frontier-lab coverage alongside OpenAI and Ollama
-
 ### In flight
 
 - [#6 Streaming memory search](https://github.com/remete618/widemem-ai/issues/6) — async iterator over results as they rank (claimed by @harishkotra)
@@ -661,16 +672,21 @@ What we are explicitly **not** building: 20-provider integration matrix, additio
 
 ---
 
-## Terms & Conditions
+## Disclaimer & intended use
 
-Apache 2.0. No warranty. YMYL is a best-effort safety net (regex plus LLM classification), not a medical device, so don't rely on it for life-critical decisions. LLM provider terms apply to provider API calls. Full text in [LICENSE](LICENSE).
+widemem is developer infrastructure, provided under the Apache License 2.0, as is and without warranty of any kind. It is not medical, legal, tax, or financial advice, not a medical device, and not a substitute for a qualified professional. Its YMYL handling (regex plus LLM classification) is a best-effort safety net, not a guarantee. Keep a human in the loop and verify outputs before relying on them in any high-stakes decision.
+
+You are responsible for your own deployment, the data you store, and meeting the regulatory obligations that apply to you. When you self-host, your data stays in your environment and we receive nothing.
+
+Export note: the software may be subject to export-control and sanctions laws (including the US EAR and OFAC lists). Do not download, use, or re-export it in violation of those laws.
+
+The Apache 2.0 license in [LICENSE](LICENSE) governs your use of the code. Terms for the hosted service and website are at [widemem.ai/terms](https://widemem.ai/terms). LLM provider terms apply to provider API calls.
 
 ---
 
 ## Contact
 
-**Radu Cioplea**
-- Email: radu@cioplea.com
+- Email: [hello@widemem.ai](mailto:hello@widemem.ai)
 - Project: [widemem.ai](https://widemem.ai)
 - Repository: [github.com/remete618/widemem-ai](https://github.com/remete618/widemem-ai)
 

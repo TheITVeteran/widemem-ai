@@ -13,7 +13,7 @@ class AnthropicLLM(BaseLLM):
         try:
             from anthropic import Anthropic
         except ImportError:
-            raise ProviderError("Install anthropic: pip install widemem[anthropic]")
+            raise ProviderError('Install anthropic: pip install "widemem-ai[anthropic]"')
         self.client = Anthropic(api_key=config.api_key.get_secret_value() if config.api_key else None)
 
     def _generate(self, prompt: str, system: str | None = None) -> str:
