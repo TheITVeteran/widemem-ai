@@ -643,10 +643,9 @@ Measured on the full 1,540-question [LoCoMo](https://github.com/snap-research/lo
 | Metric | Result |
 |---|---|
 | Overall accuracy | **54.81%** |
-| Multi-hop accuracy | **57.27%** |
 | Context per query | **~214 tokens** (vs ~26k for full-context stuffing) |
 
-Ahead of every reference system in our set on multi-hop, at a fraction of the token cost. Full methodology, per-category breakdowns, reference-system comparisons, and the story of how we caught and corrected our own earlier numbers: [widemem.ai/benchmarks](https://widemem.ai/benchmarks). Reproduce it yourself from [benchmark/](benchmark/).
+Mid-pack accuracy at a fraction of the token cost: reference systems spend 1,700 to 26,000 tokens per query. Per-category labels published before 2026-07-06 had single-hop and multi-hop transposed; the multi-hop leadership claim is retracted and the correction is logged in [docs/HISTORY.md](docs/HISTORY.md). Full methodology, per-category breakdowns, and reference-system comparisons: [widemem.ai/benchmarks](https://widemem.ai/benchmarks). Reproduce it yourself from [benchmark/](benchmark/).
 
 ---
 
