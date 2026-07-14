@@ -63,7 +63,7 @@ If gate flapping returns at this setting, the next escalation is 10 judge runs (
 ### Run the gate
 
 ```bash
-cd /Users/radu/widemem-ai
+cd widemem-ai
 set -a; source .env.local; set +a    # load OPENAI_API_KEY
 .venv/bin/python3 benchmark/mini_locomo.py
 ```

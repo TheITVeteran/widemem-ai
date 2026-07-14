@@ -13,7 +13,7 @@ If you discover a security vulnerability in widemem, please report it responsibl
 
 **Do NOT open a public GitHub issue for security vulnerabilities.**
 
-Instead, email **radu@cioplea.com** with:
+Instead, email **hello@widemem.ai** with:
 
 - Description of the vulnerability
 - Steps to reproduce
@@ -29,4 +29,4 @@ widemem is a local-first library. Security concerns include:
 - **Data storage** — Memories are stored in local SQLite and FAISS files. Ensure proper file permissions on `~/.widemem/` and any custom storage paths.
 - **LLM API keys** — Keys are passed via config or environment variables. widemem does not log, transmit, or store API keys beyond what the underlying provider SDKs do.
 - **Prompt injection** — User-provided text is sent to LLMs for extraction and conflict resolution. If you're processing untrusted input, be aware that adversarial text could influence extraction results.
-- **YMYL is not a security boundary** — The YMYL classifier uses keyword matching for prioritization. It is not a content filter, access control mechanism, or compliance tool.
+- **YMYL is not a security boundary** — The YMYL classifier uses two-stage classification (regex plus LLM) for prioritization. It is not a content filter, access control mechanism, or compliance tool.
