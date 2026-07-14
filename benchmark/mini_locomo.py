@@ -111,7 +111,10 @@ JUDGE_RUNS = 5  # 5-run averaging stabilizes single-question variance below the
                 # gate-pass thresholds. Was 3; raised after observing 2-question
                 # judge flips producing ~8-point swings on n=13 multi-hop sample.
 EVAL_LLM = "gpt-4o-mini"
-TOP_K = 10
+TOP_K = int(os.environ.get("WM_TOP_K", "10"))
+SIM_WEIGHT = float(os.environ.get("WM_SIM_WEIGHT", "0.5"))
+IMP_WEIGHT = float(os.environ.get("WM_IMP_WEIGHT", "0.3"))
+REC_WEIGHT = float(os.environ.get("WM_REC_WEIGHT", "0.2"))
 API_TIMEOUT = 30
 MAX_RETRIES = 3
 
@@ -295,9 +298,9 @@ def load_memory_stores(data):
             scoring=ScoringConfig(
                 decay_function="exponential",
                 decay_rate=0.01,
-                similarity_weight=0.5,
-                importance_weight=0.3,
-                recency_weight=0.2,
+                similarity_weight=SIM_WEIGHT,
+                importance_weight=IMP_WEIGHT,
+                recency_weight=REC_WEIGHT,
             ),
             history_db_path=os.path.join(storage_dir, "history.db"),
             enable_hierarchy=True,
