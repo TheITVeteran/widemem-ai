@@ -14,7 +14,7 @@ class SentenceTransformerEmbedder(BaseEmbedder):
             from sentence_transformers import SentenceTransformer
         except ImportError:
             raise ProviderError(
-                "Install sentence-transformers: pip install widemem[sentence-transformers]"
+                "Install sentence-transformers: pip install \"widemem-ai[sentence-transformers]\""
             )
         self._model = SentenceTransformer(
             config.model or "all-MiniLM-L6-v2",

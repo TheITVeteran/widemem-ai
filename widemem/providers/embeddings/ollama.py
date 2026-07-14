@@ -11,7 +11,7 @@ class OllamaEmbedder(BaseEmbedder):
         try:
             from ollama import Client
         except ImportError:
-            raise ProviderError("Install ollama: pip install widemem[ollama]")
+            raise ProviderError("Install ollama: pip install \"widemem-ai[ollama]\"")
         self.client = Client(host=config.base_url or "http://localhost:11434")
         self._model = config.model or "nomic-embed-text"
         self._dimensions = config.dimensions

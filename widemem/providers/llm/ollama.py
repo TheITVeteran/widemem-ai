@@ -13,7 +13,7 @@ class OllamaLLM(BaseLLM):
         try:
             from ollama import Client
         except ImportError:
-            raise ProviderError("Install ollama: pip install widemem[ollama]")
+            raise ProviderError("Install ollama: pip install \"widemem-ai[ollama]\"")
         self.client = Client(host=config.base_url or "http://localhost:11434")
 
     def _generate(self, prompt: str, system: str | None = None) -> str:

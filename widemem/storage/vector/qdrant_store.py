@@ -23,7 +23,7 @@ class QdrantVectorStore(BaseVectorStore):
             from qdrant_client import QdrantClient
             from qdrant_client.models import Distance, VectorParams
         except ImportError:
-            raise StorageError("Install qdrant: pip install widemem[qdrant]")
+            raise StorageError("Install qdrant: pip install \"widemem-ai[qdrant]\"")
 
         if config.path:
             self.client = QdrantClient(path=config.path)
