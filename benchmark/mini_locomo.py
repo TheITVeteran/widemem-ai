@@ -142,7 +142,8 @@ You have access to memories from two speakers in a conversation. These memories 
 5. If there is a question about time references (like "last year", "two months ago", etc.), calculate the actual date based on the memory timestamp
 6. Always convert relative time references to specific dates, months, or years
 7. Focus only on the content of the memories from both speakers
-8. The answer should be less than 5-6 words.
+8. If the question asks "how many" or asks for kinds/types/lists of things, first find EVERY matching memory, then answer with the complete count or the complete list of items. Do not stop at the first match.
+9. Otherwise, the answer should be less than 5-6 words.
 
 Memories for speaker {speaker_a}:
 {memories_a}
@@ -350,8 +351,9 @@ def run_question(q_data, mem_instances, client):
     )
 
     t1 = time.time()
+    # 150 tokens: enumeration answers (rule 8) can list up to ~10 items
     answer = api_call_with_retry(
-        client, EVAL_LLM, [{"role": "user", "content": prompt}]
+        client, EVAL_LLM, [{"role": "user", "content": prompt}], max_tokens=150
     )
     gen_time = time.time() - t1
 

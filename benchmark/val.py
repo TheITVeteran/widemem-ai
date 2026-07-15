@@ -140,7 +140,8 @@ OPEN_DOMAIN_ANSWER_PROMPT = """You are an intelligent memory assistant. Answer t
 1. Use the memories to identify what the question refers to (the person's interests, activities, plans)
 2. You MAY use general world knowledge to name specific real-world entities, places, or works the memories point to (e.g. if a memory says they loved a Harry Potter studio shop, you may name it)
 3. If the memories contain contradictory information, prioritize the most recent memory
-4. The answer should be less than 5-6 words.
+4. If the question asks "how many" or asks for kinds/types/lists of things, answer with the complete count or the complete list of items. Do not stop at the first match.
+5. Otherwise, the answer should be less than 5-6 words.
 
 Memories for speaker {speaker_a}:
 {memories_a}

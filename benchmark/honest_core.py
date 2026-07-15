@@ -63,7 +63,7 @@ Conversation:
 
 Question: {question}
 
-Answer in fewer than six words. If the conversation does not contain the answer, reply exactly "Not mentioned".
+Answer concisely. If the question asks for a count or a list of things, give the complete count or every matching item; otherwise answer in fewer than six words. If the conversation does not contain the answer, reply exactly "Not mentioned".
 Answer:"""
 
 
