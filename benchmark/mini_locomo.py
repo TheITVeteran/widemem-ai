@@ -111,6 +111,10 @@ JUDGE_RUNS = 5  # 5-run averaging stabilizes single-question variance below the
                 # gate-pass thresholds. Was 3; raised after observing 2-question
                 # judge flips producing ~8-point swings on n=13 multi-hop sample.
 EVAL_LLM = "gpt-4o-mini"
+# Judge/answerer separation (benchmark/HONEST_LOCOMO.md): a published number
+# needs a judge that differs from the answerer. Default unchanged (self-graded
+# dev loop); set WM_JUDGE_MODEL to a distinct model for a citable run.
+JUDGE_LLM = os.environ.get("WM_JUDGE_MODEL", EVAL_LLM)
 TOP_K = int(os.environ.get("WM_TOP_K", "10"))
 SIM_WEIGHT = float(os.environ.get("WM_SIM_WEIGHT", "0.5"))
 IMP_WEIGHT = float(os.environ.get("WM_IMP_WEIGHT", "0.3"))
@@ -242,7 +246,7 @@ def judge_one(question, gold, predicted, client):
     )
     text = api_call_with_retry(
         client,
-        EVAL_LLM,
+        JUDGE_LLM,
         [{"role": "user", "content": prompt}],
         temperature=0.1,
         max_tokens=200,
@@ -496,6 +500,10 @@ def main():
     print(f"  git sha:         {get_git_sha()}")
     print(f"  sample size:     {TOTAL_SAMPLE} questions (stratified)")
     print(f"  seed:            {SAMPLE_SEED}")
+    if JUDGE_LLM == EVAL_LLM:
+        print(f"  judge:           {JUDGE_LLM} (SELF-GRADED; set WM_JUDGE_MODEL for a publishable run)")
+    else:
+        print(f"  judge:           {JUDGE_LLM} (answerer: {EVAL_LLM})")
 
     with open(DATA_FILE) as f:
         data = json.load(f)
@@ -571,6 +579,8 @@ def main():
             "judge_runs": JUDGE_RUNS,
             "top_k_per_speaker": TOP_K,
             "eval_llm": EVAL_LLM,
+            "judge_llm": JUDGE_LLM,
+            "self_graded": JUDGE_LLM == EVAL_LLM,
             "elapsed_seconds": round(elapsed, 1),
         },
         "summary": summary,

@@ -74,6 +74,10 @@ SPLIT_FILE = "benchmark/locomo_split.json"
 
 JUDGE_RUNS = 10          # paper standard; stable category means on n>=26
 EVAL_LLM = "gpt-4o-mini"
+# Judge/answerer separation (benchmark/HONEST_LOCOMO.md): a published number
+# needs a judge that differs from the answerer. Default unchanged (self-graded
+# dev loop); set WM_JUDGE_MODEL to a distinct model for a citable run.
+JUDGE_LLM = os.environ.get("WM_JUDGE_MODEL", EVAL_LLM)
 TOP_K = 20               # per speaker, matches run_locomo.py full run
 API_TIMEOUT = 30
 MAX_RETRIES = 5
@@ -186,12 +190,12 @@ def total_cost() -> float:
     return _IN_TOK / 1_000_000 * IN_PER_1M + _OUT_TOK / 1_000_000 * OUT_PER_1M
 
 
-def api_call(client, messages, temperature=0.0, max_tokens=100):
+def api_call(client, messages, temperature=0.0, max_tokens=100, model=EVAL_LLM):
     global _IN_TOK, _OUT_TOK
     for attempt in range(MAX_RETRIES):
         try:
             resp = client.chat.completions.create(
-                model=EVAL_LLM, messages=messages, temperature=temperature,
+                model=model, messages=messages, temperature=temperature,
                 max_tokens=max_tokens, timeout=API_TIMEOUT,
             )
             if resp.usage:
@@ -211,7 +215,7 @@ def judge_one(question, gold, predicted, client):
         client,
         [{"role": "user", "content": JUDGE_PROMPT.format(
             question=str(question), gold_answer=str(gold), generated_answer=str(predicted))}],
-        temperature=0.1, max_tokens=200,
+        temperature=0.1, max_tokens=200, model=JUDGE_LLM,
     )
     if text is None:
         return None
@@ -394,6 +398,11 @@ def do_eval(args):
     for q in questions:
         mix[CATEGORY_NAMES[q["category"]]] += 1
     print(f"eval: split={label} graph={args.graph} store={args.store_dir} n={len(questions)} mix={dict(mix)} judges={JUDGE_RUNS}", flush=True)
+    if JUDGE_LLM == EVAL_LLM:
+        print(f"  judge={JUDGE_LLM} (SELF-GRADED; set WM_JUDGE_MODEL "
+              "for a publishable run)", flush=True)
+    else:
+        print(f"  judge={JUDGE_LLM} answerer={EVAL_LLM}", flush=True)
 
     mems = {}
     for idx in conv_idx:
@@ -427,6 +436,7 @@ def do_eval(args):
                              graph=args.graph, store_dir=args.store_dir,
                              timestamp=datetime.now(timezone.utc).isoformat(),
                              judge_runs=JUDGE_RUNS, top_k=TOP_K, eval_llm=EVAL_LLM,
+                             judge_llm=JUDGE_LLM, self_graded=JUDGE_LLM == EVAL_LLM,
                              elapsed_min=round(elapsed / 60, 1), cost_usd=round(total_cost(), 3)),
                summary=summary, predictions=preds)
     json.dump(out, open(args.out, "w"), indent=2, default=str)
