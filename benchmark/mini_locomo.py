@@ -111,7 +111,14 @@ JUDGE_RUNS = 5  # 5-run averaging stabilizes single-question variance below the
                 # gate-pass thresholds. Was 3; raised after observing 2-question
                 # judge flips producing ~8-point swings on n=13 multi-hop sample.
 EVAL_LLM = "gpt-4o-mini"
-TOP_K = 10
+# Judge/answerer separation (benchmark/HONEST_LOCOMO.md): a published number
+# needs a judge that differs from the answerer. Default unchanged (self-graded
+# dev loop); set WM_JUDGE_MODEL to a distinct model for a citable run.
+JUDGE_LLM = os.environ.get("WM_JUDGE_MODEL", EVAL_LLM)
+TOP_K = int(os.environ.get("WM_TOP_K", "10"))
+SIM_WEIGHT = float(os.environ.get("WM_SIM_WEIGHT", "0.5"))
+IMP_WEIGHT = float(os.environ.get("WM_IMP_WEIGHT", "0.3"))
+REC_WEIGHT = float(os.environ.get("WM_REC_WEIGHT", "0.2"))
 API_TIMEOUT = 30
 MAX_RETRIES = 3
 
@@ -139,7 +146,8 @@ You have access to memories from two speakers in a conversation. These memories 
 5. If there is a question about time references (like "last year", "two months ago", etc.), calculate the actual date based on the memory timestamp
 6. Always convert relative time references to specific dates, months, or years
 7. Focus only on the content of the memories from both speakers
-8. The answer should be less than 5-6 words.
+8. If the question asks "how many" or asks for kinds/types/lists of things, first find EVERY matching memory, then answer with the complete count or the complete list of items. Do not stop at the first match.
+9. Otherwise, the answer should be less than 5-6 words.
 
 Memories for speaker {speaker_a}:
 {memories_a}
@@ -238,7 +246,7 @@ def judge_one(question, gold, predicted, client):
     )
     text = api_call_with_retry(
         client,
-        EVAL_LLM,
+        JUDGE_LLM,
         [{"role": "user", "content": prompt}],
         temperature=0.1,
         max_tokens=200,
@@ -295,9 +303,9 @@ def load_memory_stores(data):
             scoring=ScoringConfig(
                 decay_function="exponential",
                 decay_rate=0.01,
-                similarity_weight=0.5,
-                importance_weight=0.3,
-                recency_weight=0.2,
+                similarity_weight=SIM_WEIGHT,
+                importance_weight=IMP_WEIGHT,
+                recency_weight=REC_WEIGHT,
             ),
             history_db_path=os.path.join(storage_dir, "history.db"),
             enable_hierarchy=True,
@@ -347,8 +355,9 @@ def run_question(q_data, mem_instances, client):
     )
 
     t1 = time.time()
+    # 150 tokens: enumeration answers (rule 8) can list up to ~10 items
     answer = api_call_with_retry(
-        client, EVAL_LLM, [{"role": "user", "content": prompt}]
+        client, EVAL_LLM, [{"role": "user", "content": prompt}], max_tokens=150
     )
     gen_time = time.time() - t1
 
@@ -491,6 +500,10 @@ def main():
     print(f"  git sha:         {get_git_sha()}")
     print(f"  sample size:     {TOTAL_SAMPLE} questions (stratified)")
     print(f"  seed:            {SAMPLE_SEED}")
+    if JUDGE_LLM == EVAL_LLM:
+        print(f"  judge:           {JUDGE_LLM} (SELF-GRADED; set WM_JUDGE_MODEL for a publishable run)")
+    else:
+        print(f"  judge:           {JUDGE_LLM} (answerer: {EVAL_LLM})")
 
     with open(DATA_FILE) as f:
         data = json.load(f)
@@ -566,6 +579,8 @@ def main():
             "judge_runs": JUDGE_RUNS,
             "top_k_per_speaker": TOP_K,
             "eval_llm": EVAL_LLM,
+            "judge_llm": JUDGE_LLM,
+            "self_graded": JUDGE_LLM == EVAL_LLM,
             "elapsed_seconds": round(elapsed, 1),
         },
         "summary": summary,

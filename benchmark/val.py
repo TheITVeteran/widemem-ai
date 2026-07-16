@@ -74,6 +74,10 @@ SPLIT_FILE = "benchmark/locomo_split.json"
 
 JUDGE_RUNS = 10          # paper standard; stable category means on n>=26
 EVAL_LLM = "gpt-4o-mini"
+# Judge/answerer separation (benchmark/HONEST_LOCOMO.md): a published number
+# needs a judge that differs from the answerer. Default unchanged (self-graded
+# dev loop); set WM_JUDGE_MODEL to a distinct model for a citable run.
+JUDGE_LLM = os.environ.get("WM_JUDGE_MODEL", EVAL_LLM)
 TOP_K = 20               # per speaker, matches run_locomo.py full run
 API_TIMEOUT = 30
 MAX_RETRIES = 5
@@ -140,7 +144,8 @@ OPEN_DOMAIN_ANSWER_PROMPT = """You are an intelligent memory assistant. Answer t
 1. Use the memories to identify what the question refers to (the person's interests, activities, plans)
 2. You MAY use general world knowledge to name specific real-world entities, places, or works the memories point to (e.g. if a memory says they loved a Harry Potter studio shop, you may name it)
 3. If the memories contain contradictory information, prioritize the most recent memory
-4. The answer should be less than 5-6 words.
+4. If the question asks "how many" or asks for kinds/types/lists of things, answer with the complete count or the complete list of items. Do not stop at the first match.
+5. Otherwise, the answer should be less than 5-6 words.
 
 Memories for speaker {speaker_a}:
 {memories_a}
@@ -185,12 +190,12 @@ def total_cost() -> float:
     return _IN_TOK / 1_000_000 * IN_PER_1M + _OUT_TOK / 1_000_000 * OUT_PER_1M
 
 
-def api_call(client, messages, temperature=0.0, max_tokens=100):
+def api_call(client, messages, temperature=0.0, max_tokens=100, model=EVAL_LLM):
     global _IN_TOK, _OUT_TOK
     for attempt in range(MAX_RETRIES):
         try:
             resp = client.chat.completions.create(
-                model=EVAL_LLM, messages=messages, temperature=temperature,
+                model=model, messages=messages, temperature=temperature,
                 max_tokens=max_tokens, timeout=API_TIMEOUT,
             )
             if resp.usage:
@@ -210,7 +215,7 @@ def judge_one(question, gold, predicted, client):
         client,
         [{"role": "user", "content": JUDGE_PROMPT.format(
             question=str(question), gold_answer=str(gold), generated_answer=str(predicted))}],
-        temperature=0.1, max_tokens=200,
+        temperature=0.1, max_tokens=200, model=JUDGE_LLM,
     )
     if text is None:
         return None
@@ -393,6 +398,11 @@ def do_eval(args):
     for q in questions:
         mix[CATEGORY_NAMES[q["category"]]] += 1
     print(f"eval: split={label} graph={args.graph} store={args.store_dir} n={len(questions)} mix={dict(mix)} judges={JUDGE_RUNS}", flush=True)
+    if JUDGE_LLM == EVAL_LLM:
+        print(f"  judge={JUDGE_LLM} (SELF-GRADED; set WM_JUDGE_MODEL "
+              "for a publishable run)", flush=True)
+    else:
+        print(f"  judge={JUDGE_LLM} answerer={EVAL_LLM}", flush=True)
 
     mems = {}
     for idx in conv_idx:
@@ -426,6 +436,7 @@ def do_eval(args):
                              graph=args.graph, store_dir=args.store_dir,
                              timestamp=datetime.now(timezone.utc).isoformat(),
                              judge_runs=JUDGE_RUNS, top_k=TOP_K, eval_llm=EVAL_LLM,
+                             judge_llm=JUDGE_LLM, self_graded=JUDGE_LLM == EVAL_LLM,
                              elapsed_min=round(elapsed / 60, 1), cost_usd=round(total_cost(), 3)),
                summary=summary, predictions=preds)
     json.dump(out, open(args.out, "w"), indent=2, default=str)
